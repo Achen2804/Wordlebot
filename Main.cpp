@@ -5,48 +5,50 @@
 #include <iterator>
 #include <map>
 #include <unordered_map>
+#include <unordered_set>
+#include <vector>
+#include<bits/stdc++.h>
 
 
 using namespace std;
-string wordBank[2316]{};
-string answerBank[2316]{};
-string emptyBank[2316]{};
-int answerSizeCounter{};
-string answer{"crane"};
-string *makeList();
-void cutList(char first, char second, char third, char fourth, char fifth);
-void firstCut(char ch,int position);
-void nextCut(char ch,int position);
+
+
+
+vector<string> wordBank(2316); //This keeps track of my words
+vector<unordered_map<char,int>> wordInfo(2316); //This tracks the number of times a letter appears
+vector<unordered_set<char>> wordletters(2316); //This tracks what letters appear in each word
+
+
+string answer{"salet"};
+void makeList();
+void cutList(string feedback);
 void score();
+//void firstCut(char ch,int position);
+//void cut(string feedback);
+
 int main()
 {
-    char ch1,ch2,ch3,ch4,ch5{};
+    string feedback;
     int guesses=1;
     makeList();//This is making my list of words//
 
     cout << "My guess is '"<<answer<<"' please give feedback \n";//First guess//
-    cin >>ch1>>ch2>>ch3>>ch4>>ch5;
-    if(ch1=='g'&&ch2=='g'&& ch3=='g'&&ch4=='g'&& ch5=='g'){
+    cin >>feedback;
+    
+    if(feedback=="ggggg"){
         cout<<"And we're done.";}
     else{
-    cutList(ch1,ch2,ch3,ch4,ch5);//This reduces my answer pool. 
+    cutList(feedback);//This reduces my answer pool. 
     score();
     cout<<"Scoring done: ";
     while(guesses>=0){
     guesses++;
-    cin >>ch1>>ch2>>ch3>>ch4>>ch5;
-    if(ch1=='g'&&ch2=='g'&& ch3=='g'&&ch4=='g'&& ch5=='g'){
-        cout<<"And we're done. It took me "<<guesses<<" guesses";
+    cin >>feedback;
+    if(feedback=="ggggg"){
+        cout<<"Aaaannnnd done. It took me "<<guesses<<" guesses";
         break;
     }else{
-        nextCut(ch1,0);
-        nextCut(ch2,1);
-        nextCut(ch3,2);
-        nextCut(ch4,3);
-        nextCut(ch5,4);
-        for(int y=0;y<answerSizeCounter;y++){
-            cout<< y<<" "<<answerBank[y]<<endl;
-        }
+        cutList(feedback);
         score();
             }
         }
@@ -56,143 +58,101 @@ int main()
 void score(){
     cout<<"Begining the scoring. ";
     unordered_map<char, int> letterScore;
-    int wordScore[answerSizeCounter]{};
-    for(int y=0;y<answerSizeCounter;y++){
-        for (const char &c: answerBank[y]){
+    vector<int> wordScore(wordletters.size());
+    for(int y=0;y<wordletters.size();y++){
+        for (const char &c: wordletters[y]){
 		// check if key `c` exists in the map or not
-        unordered_map<char, int>::iterator it = letterScore.find(c);
-
-		// key already present on the map
-		if (it != letterScore.end()) {
-			it->second++;	// increment map's value for key `c`
-		    }else {//to add a key if we encounter a new letter
-			letterScore.insert(std::make_pair(c, 1));
-		    }
+            if(letterScore.find(c) != letterScore.end()){
+                letterScore[c]++;
+            }else{
+                letterScore[c]=1;
+            }
 	    }
     }
     letterScore['0']=0;
-	for(int y=0;y<answerSizeCounter;y++){
-	   for (const char &c: answerBank[y]){
+	for(int y=0;y<wordletters.size();y++){
+	   for (const char &c: wordletters[y]){
 	    wordScore[y]+= letterScore[c];
 	   }
 	}
 	int max=0;
-	for(int sc = 0; sc<answerSizeCounter;sc++){
+	for(int sc = 0; sc<wordletters.size();sc++){
 	    if(wordScore[sc]>max){
 	        max=wordScore[sc];
-	        answer=answerBank[sc];
-	        cout << "My guess is '"<<answer<<"' based on new info please give feedback \n";//First guess//
+	        answer=wordBank[sc];
+	        
 	    }
+	    
 	}
+	cout << "My guess is '"<<answer<<"' based on new info please give feedback \n, score is"<<max;//First guess//
 }
-	
-void cutList(char first, char second, char third, char fourth, char fifth){
-    cout<<"Cutting list"<<endl;
-    answerSizeCounter=0;
-    firstCut(first,0);
-    cout<<"First done"<<endl;
-    nextCut(second,1);
-    nextCut(third,2);
-    nextCut(fourth,3);
-    nextCut(fifth,4);
-    for(int y=0;y<answerSizeCounter;y++){
-	   cout<<"{ "<<y<<", "<<answerBank[y]<<"}";
-	}
-}
-void nextCut(char ch, int position){
-    if(ch=='y'){
-        for(int y=0; y<answerSizeCounter;y++){//check every word
-            int exclusive =1;
-            for(int check=0; check<5;check++){//check every letter in the word
-            if(answerBank[y].at(check)==answer.at(position) && check==position){
-                exclusive=1;
-                break;
-                }else if(answerBank[y].at(check)==answer.at(position) && check!=position){
-                exclusive=0;
+void cutList(string feedback){
+    unordered_map<char,int> guessFeedback; //This tracks the number of times a letter appears
+    for(int x=0;x<5;x++){
+        int y=0;
+        switch(feedback[x]){
+            case 'g':
+            if(guessFeedback.find(answer[x]) != guessFeedback.end()){
+                guessFeedback[answer[x]]++;
+            }else{
+                guessFeedback[answer[x]]=1;
+            }
+                while(y<wordBank.size()){
+                    if(answer[x]!=wordBank[y][x]){
+                        cout<<wordBank[y];
+                        wordInfo.erase(wordInfo.begin()+y);
+                        wordBank.erase(wordBank.begin()+y);
+                        wordletters.erase(wordletters.begin()+y);
+                    }else{
+                        y++;
+                    }
                 }
-            }
-            if(exclusive==1){
-                answerBank[y]="00000";
-            }
-        }
-    }else if(ch=='g') {
-        for(int y=0; y<answerSizeCounter;y++){
-            int exclusive =1;
-            for(int check=0; check<5;check++){//check every letter in the word
-            if(answerBank[y].at(check)==answer.at(position) && check==position){
-                exclusive=0;
                 break;
-                }else if(answerBank[y].at(check)==answer.at(position) && check!=position){
-                exclusive=1;
+            case 'y':
+            if(guessFeedback.find(answer[x]) != guessFeedback.end()){
+                guessFeedback[answer[x]]++;
+            }else{
+                guessFeedback[answer[x]]=1;
+            }
+                while(y<wordBank.size()){
+                    if(answer[x]==wordBank[y][x] || guessFeedback[answer[x]]>wordInfo[y][answer[x]]){
+                        cout<<wordBank[y];
+                        wordInfo.erase(wordInfo.begin()+y);
+                        wordBank.erase(wordBank.begin()+y);
+                        wordletters.erase(wordletters.begin()+y);
+                    }else{
+                        y++;
+                    }
                 }
-            }
-            if(exclusive==1){
-                answerBank[y]="00000";
-            }
-        }
-    }else if(ch=='b'){
-        for(int y=0; y<answerSizeCounter;y++){
-            int exclusive =1;
-            for(int check=position; check<5;check++){//check every letter in the word
-            if(answerBank[y].at(position)==answer.at(position)){
-                answerBank[y]="00000";
                 break;
+            
+        }
+        
+    }
+    for(int x=0;x<5;x++){
+        int y=0;
+        if(guessFeedback.find(answer[x]) != guessFeedback.end()){
+                continue;
+            }else{
+                guessFeedback[answer[x]]=0;
+            }
+        if(feedback[x]=='b'){
+            while(y<wordBank.size()){
+                if(wordInfo[y][answer[x]]>guessFeedback[answer[x]]){
+                    wordInfo.erase(wordInfo.begin()+y);
+                    wordBank.erase(wordBank.begin()+y);
+                    wordletters.erase(wordletters.begin()+y);
+                }else{
+                    y++;
                 }
             }
         }
     }
-}
-void firstCut(char ch, int position){
-    if(ch=='y'){
-        for(int y=0; y<2315;y++){
-            for(int check=0; check<5;check++){
-            if(wordBank[y].at(check)==answer.at(position) && check==position){
-                y++;
-                break;
-                }else if(wordBank[y].at(check)==answer.at(position) && check!=position) {
-                answerBank[answerSizeCounter]=wordBank[y];
-                answerSizeCounter++;
-                break;
-                } 
-            }
-        }
-    }else if(ch=='g') {
-        for(int y=0; y<2315;y++){
-            int exclusive =1;
-            for(int check=0; check<5;check++){
-            if(wordBank[y].at(check)==answer.at(position) && check==position){
-                exclusive=0;
-                }else if(wordBank[y].at(check)==answer.at(position) && check!=position){
-                exclusive=1;
-                break;
-                }
-            }
-            if(exclusive==0){
-                answerBank[answerSizeCounter]=wordBank[y];
-                answerSizeCounter++;
-            }
-        }
-    }else if(ch=='b'){ 
-        for(int y=0; y<2315;y++){
-            int exclusive=0;
-            for(int check=0; check<5;check++){
-                if(wordBank[y].at(check) == answer.at(0)){
-                    exclusive=1;
-                    break;
-                }
-            }
-            if(exclusive==0){
-            answerBank[answerSizeCounter]=wordBank[y];
-            answerSizeCounter++;
-            }
-        }
-    }
-    cout<<"Word bank: ";
-    for(int y=0;y<answerSizeCounter;y++){
-        cout << y <<" "<<answerBank[y];
+    for(auto &itr: guessFeedback){
+        cout<<"We have "<<itr.second<<" "<<itr.first<<"\n";
     }
 }
-string *makeList(){
+void makeList(){
     int x{};
     ifstream fin("wordle-answers.txt");
 
@@ -208,6 +168,14 @@ string *makeList(){
 	while(fin) {
 		fin.getline(str, i);
 		wordBank[x]=str;
+		for(int y=0;y<6;y++){
+		    wordletters[x].emplace(str[y]);
+		    if(wordInfo[x].find(str[y]) != wordInfo[x].end()){
+		        wordInfo[x][str[y]]++;
+		    }else{
+		        wordInfo[x][str[y]]=1;
+		    }
+		}
 		if(fin) cout << wordBank[x] << endl;
 		x++;
 		if(x==2315){
@@ -215,6 +183,5 @@ string *makeList(){
 		    fin.close();
 	  	  }
 	}
-    return wordBank;
     }
 }
