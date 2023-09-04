@@ -165,23 +165,23 @@ void makeList(){
 	char str[6];
 	int i = 6;
 
-	while(fin) {
-		fin.getline(str, i);
-		wordBank[x]=str;
-		for(int y=0;y<6;y++){
-		    wordletters[x].emplace(str[y]);
-		    if(wordInfo[x].find(str[y]) != wordInfo[x].end()){
-		        wordInfo[x][str[y]]++;
-		    }else{
-		        wordInfo[x][str[y]]=1;
-		    }
-		}
-		if(fin) cout << wordBank[x] << endl;
-		x++;
-		if(x==2315){
-		    cout<<"Done. ";
-		    fin.close();
-	  	  }
-	}
+    	while(fin) {
+    		fin.getline(str, i);
+    		wordBank[x]=str;
+    		for(int y=0;y<6;y++){
+    		    wordletters[x].emplace(str[y]);
+    		    if(wordInfo[x].find(str[y]) != wordInfo[x].end()){
+    		        wordInfo[x][str[y]]++;
+    		    }else{
+    		        wordInfo[x][str[y]]=1;
+    		    }
+    		}
+    		if(fin) cout << wordBank[x] << endl;
+    		x++;
+    		if(x==2315){
+    		    cout<<"Done. ";
+    		    fin.close();
+    	  	  }
+    	}
     }
 }
