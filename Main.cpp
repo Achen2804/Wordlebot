@@ -9,16 +9,16 @@
 #include <vector>
 #include<bits/stdc++.h>
 
-
 using namespace std;
 
+map<char,int> letter_mark{{'a',0}};
+struct Word{
+    string name;
+    unordered_map<char,int> wordInfo;
+    unordered_set<char> wordletters;
+};
 
-
-vector<string> wordBank(2316); //This keeps track of my words
-vector<unordered_map<char,int>> wordInfo(2316); //This tracks the number of times a letter appears
-vector<unordered_set<char>> wordletters(2316); //This tracks what letters appear in each word
-
-
+vector<Word> masterList;
 string answer{"salet"};
 void makeList();
 void cutList(string feedback);
@@ -31,7 +31,9 @@ int main()
     string feedback;
     int guesses=1;
     makeList();//This is making my list of words//
-
+    for(int x=0;x<letter_mark.size();x++){
+        cout<<masterList[letter_mark[x]].name<<"\n";
+    }
     cout << "My guess is '"<<answer<<"' please give feedback \n";//First guess//
     cin >>feedback;
     
@@ -58,9 +60,9 @@ int main()
 void score(){
     cout<<"Begining the scoring. ";
     unordered_map<char, int> letterScore;
-    vector<int> wordScore(wordletters.size());
-    for(int y=0;y<wordletters.size();y++){
-        for (const char &c: wordletters[y]){
+    vector<int> wordScore(masterList.size());
+    for(int y=0;y<masterList.size();y++){
+        for (const char &c: masterList[y].name){
 		// check if key `c` exists in the map or not
             if(letterScore.find(c) != letterScore.end()){
                 letterScore[c]++;
@@ -70,26 +72,81 @@ void score(){
 	    }
     }
     letterScore['0']=0;
-	for(int y=0;y<wordletters.size();y++){
-	   for (const char &c: wordletters[y]){
+	for(int y=0;y<masterList.size();y++){
+	   for (const char &c: masterList[y].wordletters){
 	    wordScore[y]+= letterScore[c];
 	   }
 	}
 	int max=0;
-	for(int sc = 0; sc<wordletters.size();sc++){
+	for(int sc = 0; sc<masterList.size();sc++){
 	    if(wordScore[sc]>max){
 	        max=wordScore[sc];
-	        answer=wordBank[sc];
-	        
+	        answer=masterList[sc].name;
 	    }
 	    
 	}
+	/*
+	for(auto word:masterList){
+	  cout<<word.name<<"\n";
+	}*/
 	cout << "My guess is '"<<answer<<"' based on new info please give feedback \n, score is"<<max;//First guess//
+	
 }
 void cutList(string feedback){
+    time_t start_time, end;
+    time(&start_time);
     unordered_map<char,int> guessFeedback; //This tracks the number of times a letter appears
-    for(int x=0;x<5;x++){
-        int y=0;
+    
+    auto finder = letter_mark.find(answer[0]);
+    auto nex = next(finder);
+    int cur_letter = (*finder).second;
+    int next_letter = (*nex).second;
+    int y=0;
+    switch(feedback[0]){
+        case 'g':
+        masterList.erase(masterList.begin()+ next_letter,masterList.end());
+        masterList.erase(masterList.begin(),masterList.begin()+ cur_letter);
+        for(int x =0; x<masterList.size();x++){
+            if(masterList[x].wordletters.find(answer[0])==masterList[x].wordletters.end()){
+                masterList.erase(masterList.begin()+x);
+            }
+        }
+        guessFeedback[answer[0]]=1;
+        break;
+        case 'y':
+        masterList.erase(masterList.begin()+ cur_letter,masterList.begin()+ next_letter);
+        guessFeedback[answer[0]]=1;
+        while(y<masterList.size()){
+            if(masterList[y].wordletters.find(answer[0])==masterList[y].wordletters.end()){
+                masterList.erase(masterList.begin()+y);
+            }else{
+                y++;
+            }
+        }
+        guessFeedback[answer[0]]=1;
+        break;
+        case 'b':
+        masterList.erase(masterList.begin()+ cur_letter,masterList.begin()+ next_letter);
+        while(y<masterList.size()){
+            if(masterList[y].wordletters.find(answer[0])!=masterList[y].wordletters.end()){
+                masterList.erase(masterList.begin()+y);
+            }else{
+                y++;
+            }
+        }
+    }
+    int test=0;
+    
+    /*for(auto word:masterList){
+	  cout<<word.name<<"\n";
+	}
+    cout<<"First is done, press enter to keep going";
+    
+    cin>>test;
+    */
+    for(int x=1;x<5;x++){
+        //cout<<"Working on it mate\n";
+        y=0;
         switch(feedback[x]){
             case 'g':
             if(guessFeedback.find(answer[x]) != guessFeedback.end()){
@@ -97,29 +154,25 @@ void cutList(string feedback){
             }else{
                 guessFeedback[answer[x]]=1;
             }
-                while(y<wordBank.size()){
-                    if(answer[x]!=wordBank[y][x]){
-                        cout<<wordBank[y];
-                        wordInfo.erase(wordInfo.begin()+y);
-                        wordBank.erase(wordBank.begin()+y);
-                        wordletters.erase(wordletters.begin()+y);
+                while(y<masterList.size()){
+                    if(answer[x]!=masterList[y].name[x]){
+                        masterList.erase(masterList.begin()+y);
                     }else{
                         y++;
                     }
                 }
                 break;
+                
             case 'y':
             if(guessFeedback.find(answer[x]) != guessFeedback.end()){
                 guessFeedback[answer[x]]++;
             }else{
                 guessFeedback[answer[x]]=1;
             }
-                while(y<wordBank.size()){
-                    if(answer[x]==wordBank[y][x] || guessFeedback[answer[x]]>wordInfo[y][answer[x]]){
-                        cout<<wordBank[y];
-                        wordInfo.erase(wordInfo.begin()+y);
-                        wordBank.erase(wordBank.begin()+y);
-                        wordletters.erase(wordletters.begin()+y);
+                while(y<masterList.size()){
+                    //cout<<masterList[y].name<<"\n";
+                    if(answer[x]==masterList[y].name[x] || guessFeedback[answer[x]]>masterList[y].wordInfo[answer[x]]){
+                        masterList.erase(masterList.begin()+y);
                     }else{
                         y++;
                     }
@@ -127,61 +180,115 @@ void cutList(string feedback){
                 break;
             
         }
-        
+        /*
+        for(auto word:masterList){
+	        cout<<word.name<<"\n";
+	    }
+        cout<<"next is done, press enter to keep going";
+        cin>>test;
+*/
     }
     for(int x=0;x<5;x++){
-        int y=0;
         if(guessFeedback.find(answer[x]) != guessFeedback.end()){
-                continue;
-            }else{
-                guessFeedback[answer[x]]=0;
-            }
-        if(feedback[x]=='b'){
-            while(y<wordBank.size()){
-                if(wordInfo[y][answer[x]]>guessFeedback[answer[x]]){
-                    wordInfo.erase(wordInfo.begin()+y);
-                    wordBank.erase(wordBank.begin()+y);
-                    wordletters.erase(wordletters.begin()+y);
-                }else{
-                    y++;
-                }
-            }
+            continue;
+        }else{
+            guessFeedback[answer[x]]=0;
         }
     }
-    for(auto &itr: guessFeedback){
-        cout<<"We have "<<itr.second<<" "<<itr.first<<"\n";
+    /*
+    for(auto &letter : guessFeedback){
+        cout<<letter.first <<" "<<letter.second<<"\n";
     }
+    cin>>test;
+    */
+    letter_mark.clear();
+    y=0;
+    char prev='0';
+    while(y<masterList.size()){
+            
+            bool cut=false;
+        for(int x=0;x<5;x++){
+	       if(feedback[x]=='b'){
+           if(masterList[y].wordInfo[answer[x]]>guessFeedback[answer[x]]){
+                //cout<<masterList[y].name;
+                masterList.erase(masterList.begin()+y);
+                cut=true;
+           }
+        }
+        char start=masterList[y].name[0];
+        if(start!=prev){
+            letter_mark[start]=y;
+            prev=start;
+        }
+    }
+    
+    if(cut)
+        y--;
+    y++;
+}
+letter_mark['z'+1] = masterList.size();
+/*
+for(auto word:masterList){
+	cout<<word.name<<"\n";
+}
+    cout<<"next is done, press enter to keep going";
+    cin>>test;
+    for(auto &data : letter_mark){
+        cout<<data.first<<" "<<masterList[data.second].name<<"\n";
+    }
+    */
+    time(&end);
+    cout<<end-start_time<<"\n";
+    cin>>test;
 }
 void makeList(){
-    int x{};
     ifstream fin("wordle-answers.txt");
 
 
 	cout<< "This program reads and prints a text file" << endl;
-	cout<< "Press Enter for every line of text to be displayed" << endl;
+	cout<< "Press Enter to begin" << endl;
 
 
 	if(cin.get() == '\n'){
-	char str[6];
-	int i = 6;
-
-    	while(fin) {
-    		fin.getline(str, i);
-    		wordBank[x]=str;
-    		for(int y=0;y<6;y++){
-    		    wordletters[x].emplace(str[y]);
-    		    if(wordInfo[x].find(str[y]) != wordInfo[x].end()){
-    		        wordInfo[x][str[y]]++;
-    		    }else{
-    		        wordInfo[x][str[y]]=1;
-    		    }
-    		}
-    		if(fin) cout << wordBank[x] << endl;
-    		x++;
-    		if(x==2315){
-    		    cout<<"Done. ";
-    		    fin.close();
-    	  	  }
-    	}
+	string str;
+	fin>>str;
+	unordered_map<char,int> map;
+		unordered_set<char> set;
+		for(int y=0;y<5;y++){
+		    set.emplace(str[y]);
+		    if(map.find(str[y]) != map.end()){
+		        map[str[y]]++;
+		    }else{
+		        map[str[y]]=1;
+		    }
+		}
+		Word ans;
+		ans.name = str;
+		ans.wordInfo = map;
+		ans.wordletters = set;
+		masterList.push_back(ans);
+	while(fin>>str) {
+	    if(str[0]!=masterList[masterList.size()-1].name[0]){
+	        letter_mark[str[0]]=(masterList.size());
+	    }
+		unordered_map<char,int> map;
+		unordered_set<char> set;
+		for(int y=0;y<6;y++){
+		    set.emplace(str[y]);
+		    if(map.find(str[y]) != map.end()){
+		        map[str[y]]++;
+		    }else{
+		        map[str[y]]=1;
+		    }
+		}
+		Word ans;
+		ans.name = str;
+		ans.wordInfo = map;
+		ans.wordletters = set;
+		masterList.push_back(ans);
+	}
+		cout<<"Done. ";
+		 fin.close();
+	    }
+	    letter_mark['z'+1] = masterList.size();
     }
-}
