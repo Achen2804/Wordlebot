@@ -31,9 +31,6 @@ int main()
     string feedback;
     int guesses=1;
     makeList();//This is making my list of words//
-    for(int x=0;x<letter_mark.size();x++){
-        cout<<masterList[letter_mark[x]].name<<"\n";
-    }
     cout << "My guess is '"<<answer<<"' please give feedback \n";//First guess//
     cin >>feedback;
     
@@ -43,7 +40,7 @@ int main()
     cutList(feedback);//This reduces my answer pool. 
     score();
     cout<<"Scoring done: ";
-    while(guesses>=0){
+    while(guesses<6){
     guesses++;
     cin >>feedback;
     if(feedback=="ggggg"){
@@ -93,8 +90,6 @@ void score(){
 	
 }
 void cutList(string feedback){
-    time_t start_time, end;
-    time(&start_time);
     unordered_map<char,int> guessFeedback; //This tracks the number of times a letter appears
     
     auto finder = letter_mark.find(answer[0]);
@@ -237,9 +232,6 @@ for(auto word:masterList){
         cout<<data.first<<" "<<masterList[data.second].name<<"\n";
     }
     */
-    time(&end);
-    cout<<end-start_time<<"\n";
-    cin>>test;
 }
 void makeList(){
     ifstream fin("wordle-answers.txt");
