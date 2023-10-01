@@ -36,6 +36,7 @@ void cutList(string feedback);
 void score();
 map<char,Word*> letter_mark;
 Word* start = new Word;
+
 //void firstCut(char ch,int position);
 //void cut(string feedback);
 
@@ -68,10 +69,8 @@ int main()
     return 0;
 }
 void score(){
-    //cout<<"Begining the scoring. ";
     unordered_map<char, int> letterScore;
     Word* head=start->next;
-    //cout<<head->name;
     while(head){
         for (const char &c: head->name){
             if(letterScore.find(c) != letterScore.end()){
@@ -88,7 +87,7 @@ void score(){
     while(head){
         int score=0;
 	    for (const char &c: head->wordletters){
-	       score+=letterScore[c];
+	       score+=letterScore[c]*(head->wordInfo[c]+1)/2;
 	    }
 	    head->score=score;
 	    if(head->score>max){
@@ -106,15 +105,18 @@ void cutList(string feedback){
     auto finder = letter_mark.find(answer[0]);
     auto nex = next(finder);
     Word* start_of_section = (*finder).second;
+    
     Word* end_of_section = (*nex).second;
-    Word* head=start;
+    Word* head=start->next;
     Word* previous_word = start;
     switch(feedback[0]){
         case 'g':
-        start->next=start_of_section->next;
+        head=start_of_section->next;
         start_of_section->next = NULL;
         end_of_section->next=NULL;
-        //cout<<start->name;
+        start->next=head;
+        previous_word=start;
+        ;
         guessFeedback[answer[0]]=1;
         break;
         case 'y':
@@ -142,22 +144,19 @@ void cutList(string feedback){
         start_of_section->next=end_of_section->next;
         end_of_section->next=NULL;
         head=start->next;
-        while(head){
-            //cout<<head->name<<"\n";
-            if(head->wordletters.find(answer[0])!=head->wordletters.end()){
-                previous_word->next=head->next;
-                head->next=NULL;
-                head=previous_word->next;
-            }else{
-                previous_word=head;
-                head=head->next;
-            }
-        }
+        cout<<head->name;
     }
+    /*
+    head=start->next;
+    previous_word=start;
+    while(head){
+        cout<<head->name<<"\n";
+        head=head->next;
+    }
+    */
     for(int x=1;x<5;x++){
         head=start->next;
         previous_word=start;
-        cout<<"Working on it mate\n";
         switch(feedback[x]){
             case 'g':
             if(guessFeedback.find(answer[x]) != guessFeedback.end()){
@@ -209,6 +208,7 @@ void cutList(string feedback){
     char prev='0';
     head=start->next;
     previous_word=start;
+    
     while(head){
         for(int x=0;x<5;x++){
 	        if(feedback[x]=='b' && head){
@@ -231,9 +231,10 @@ void cutList(string feedback){
             previous_word=head;
             head=head->next;
         }
-    letter_mark['z'+1] = new Word;
+    letter_mark['z'+1] = previous_word;
     start=letter_mark.begin()->second;
     head=start->next;
+    
     while(head){
         cout<<head->name<<"\n";
         head=head->next;
@@ -241,6 +242,7 @@ void cutList(string feedback){
     for(auto &data : letter_mark){
         cout<<data.first<<" "<<data.second->name<<"\n";
     }
+    
 }
 void makeList(){
     ifstream fin("wordle-answers.txt");
@@ -269,6 +271,7 @@ void makeList(){
 		ans->wordletters = set;
 		Word* prev = ans;
 		start->next=prev;
+		start->name="Starting";
 		letter_mark['a']=start;
 	while(fin>>str) {
 	    if(str[0]!= prev->name[0]){
@@ -296,7 +299,5 @@ void makeList(){
 	
 	cout<<"Done. ";
 	fin.close();
-     letter_mark['z'+1] = new Word;
     }
-
 }
