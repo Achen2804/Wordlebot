@@ -45,7 +45,8 @@ int main()
     string feedback;
     int guesses=1;
     makeList();//This is making my list of words//
-    cout << "My guess is '"<<answer<<"' please give feedback \n";//First guess//
+    cout << "My guess is '"<<answer<<"' please give feedback by entering b y or g on each position depending if the letter is blank, yellow or green\n";
+    cout<<"Example input, ggbyg. ";//First guess//
     cin >>feedback;
     
     if(feedback=="ggggg"){
